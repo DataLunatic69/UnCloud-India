@@ -1,0 +1,7 @@
+Current gradient-hero colors:
+--primary: 180 40% 35% (teal)
+--healing: 150 40% 45% (green)
+
+This creates: linear-gradient(135deg, hsl(180 40% 35%), hsl(150 40% 45%))
+
+For the CTA section, I need to convert this to Tailwind classes or use the CSS custom property.

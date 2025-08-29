@@ -7,6 +7,59 @@ import { BookOpen, ArrowLeft, Search, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAI } from '@/hooks/useAI';
 
+// Helper function to format myth response with proper markdown rendering
+const formatMythResponse = (text: string): React.ReactNode => {
+  if (!text) return null;
+  
+  // Split text into lines for processing
+  const lines = text.split('\n');
+  const formattedElements: React.ReactNode[] = [];
+  
+  lines.forEach((line, index) => {
+    let formattedLine = line;
+    
+    // Handle bold text (**text**)
+    formattedLine = formattedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Handle numbered lists (1. 2. 3. etc.)
+    if (/^\d+\.\s/.test(formattedLine)) {
+      formattedElements.push(
+        <div key={index} className="ml-4 mb-2">
+          <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
+        </div>
+      );
+    }
+    // Handle bullet points (- or •)
+    else if (/^[-•]\s/.test(formattedLine)) {
+      formattedElements.push(
+        <div key={index} className="ml-4 mb-1">
+          <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
+        </div>
+      );
+    }
+    // Handle section headers (lines that end with :)
+    else if (formattedLine.endsWith(':') && formattedLine.length < 50) {
+      formattedElements.push(
+        <h4 key={index} className="font-semibold text-primary mt-3 mb-2" 
+            dangerouslySetInnerHTML={{ __html: formattedLine }} />
+      );
+    }
+    // Regular paragraphs
+    else if (formattedLine.trim()) {
+      formattedElements.push(
+        <p key={index} className="mb-2 leading-relaxed" 
+           dangerouslySetInnerHTML={{ __html: formattedLine }} />
+      );
+    }
+    // Empty lines for spacing
+    else {
+      formattedElements.push(<br key={index} />);
+    }
+  });
+  
+  return <div className="space-y-1">{formattedElements}</div>;
+};
+
 const COMMON_MYTHS = [
   {
     myth: "Mental health problems are a sign of weakness",
@@ -217,8 +270,10 @@ const MythBuster = () => {
                 </Button>
                 
                 {customResponse && (
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-sm leading-relaxed">{customResponse}</p>
+                  <div className="p-4 bg-muted/30 rounded-lg border-l-4 border-primary">
+                    <div className="text-sm leading-relaxed">
+                      {formatMythResponse(customResponse)}
+                    </div>
                   </div>
                 )}
               </CardContent>

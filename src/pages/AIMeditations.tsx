@@ -104,6 +104,21 @@ const AIMeditations = () => {
     }
   };
 
+  const formatScriptPreview = (script: string, maxLength: number = 150) => {
+    // Clean the script for preview
+    const cleaned = script
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting for preview
+      .replace(/[🧘‍♀️🌸💫⭐🌙🧠💝🎯📚🏠👨‍👩‍👧‍👦💤😴🌊🔥❤️💪🎯📝🧘‍♂️]/g, '') // Remove emojis including family emoji
+      .replace(/\([0-9-]+\s*minutes?\)/g, '') // Remove timing indicators
+      .replace(/\n+/g, ' ') // Replace line breaks with spaces
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+    
+    return cleaned.length > maxLength ? 
+      `${cleaned.substring(0, maxLength)}...` : 
+      cleaned;
+  };
+
   const getCurrentMeditation = (meditation: any, index: number) => {
     const meditationKey = `${meditation.title}-${index}`;
     return enhancedMeditations[meditationKey] || meditation;
@@ -111,14 +126,34 @@ const AIMeditations = () => {
 
   const formatMeditationScript = (script: string) => {
     return script
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
-      .replace(/^\ud83e\uddd8|\ud83d\ude0c|\ud83c\udf19|\ud83c\udfaf|\ud83d\udc96|\ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66|\ud83d\udcda/gm, '') // Remove emojis from start of lines
+      // Handle bold text
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+      // Handle italic text
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      // Convert sections with parentheses to styled time indicators
+      .replace(/\(([0-9-]+\s*minutes?)\)/g, '<span class="text-xs px-2 py-1 bg-primary/10 rounded text-primary font-medium">$1</span>')
+      // Convert lines that are all caps or start with emojis to headers
       .split('\n')
       .map(line => {
-        if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-          return `<h3 class="text-lg font-semibold text-primary mt-4 mb-2">${line.replace(/\*\*/g, '')}</h3>`;
+        const trimmedLine = line.trim();
+        // Section headers (all caps or emoji + title)
+        if (trimmedLine.match(/^[🧘‍♀️🌸💫⭐🌙🧠💝🎯📚🏠👨‍👩‍👧‍👦💤😴🌊🔥❤️💪🎯📝]+\s*\*\*.*\*\*/) || 
+            trimmedLine.match(/^\*\*[A-Z\s&()-]+\*\*$/)) {
+          const headerText = trimmedLine.replace(/[💫⭐🌙]/g, '').replace(/\*\*/g, '').trim();
+          return `<h3 class="text-lg font-semibold text-primary mt-4 mb-2 flex items-center gap-2">
+            <span class="text-primary/70">${trimmedLine.match(/[💫⭐🌙]/)?.[0] || ''}</span>
+            ${headerText}
+          </h3>`;
         }
-        return line;
+        // Sub-headers with timing
+        if (trimmedLine.match(/^\*\*.*\([0-9-]+.*\)\*\*$/)) {
+          return `<h4 class="text-base font-medium text-primary/80 mt-3 mb-1">${trimmedLine.replace(/\*\*/g, '')}</h4>`;
+        }
+        // Regular paragraphs
+        if (trimmedLine.length > 0) {
+          return `<p class="mb-2 leading-relaxed">${line}</p>`;
+        }
+        return '<div class="mb-2"></div>'; // Empty line spacing
       })
       .join('\n');
   };
@@ -446,10 +481,7 @@ const AIMeditations = () => {
                         </div>
                         
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {currentMeditation.script.length > 100 ? 
-                            `${currentMeditation.script.substring(0, 100)}...` : 
-                            currentMeditation.script
-                          }
+                          {formatScriptPreview(currentMeditation.script, 100)}
                         </p>
                         
                         {currentMeditation.tags && (

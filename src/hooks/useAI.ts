@@ -773,26 +773,38 @@ Keep response supportive and actionable.`
               options.onProgress?.((chunkIndex / chunks.length) * 100);
               
               const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
-              utterance.rate = options.speed || 0.8;
-              utterance.pitch = 0.9;
+              utterance.rate = options.speed || 1.0; // Use normal speed
+              utterance.pitch = 1.0; // Use natural pitch
               utterance.volume = options.volume || 0.8;
               
-              // Try to use a more natural voice
-              const voices = speechSynthesis.getVoices();
-              const preferredVoice = voices.find(voice => 
-                voice.name.toLowerCase().includes('natural') ||
-                voice.name.toLowerCase().includes('enhanced') ||
-                voice.name.toLowerCase().includes('premium') ||
-                voice.name.toLowerCase().includes('david') ||
-                voice.name.toLowerCase().includes('aria') ||
-                voice.name.toLowerCase().includes('jenny') ||
-                (!voice.name.toLowerCase().includes('microsoft') && voice.lang.startsWith('en'))
-              ) || voices.find(voice => 
-                voice.name.toLowerCase().includes('female') ||
-                voice.name.toLowerCase().includes('zira') ||
-                voice.name.toLowerCase().includes('samantha') ||
-                voice.name.toLowerCase().includes('hazel')
-              );
+            // Only use young, soft female voices for AI-Therapist
+            const voices = speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice => 
+              // First priority: Young female voices with higher pitch
+              voice.name.toLowerCase().includes('jenny') ||
+              voice.name.toLowerCase().includes('aria') ||
+              voice.name.toLowerCase().includes('samantha') ||
+              voice.name.toLowerCase().includes('girl') ||
+              voice.name.toLowerCase().includes('child') ||
+              // Second priority: Soft female voices (not Microsoft which tend to be deeper)
+              (voice.name.toLowerCase().includes('female') && 
+               !voice.name.toLowerCase().includes('microsoft') && 
+               !voice.name.toLowerCase().includes('adult')) ||
+              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('eva')
+            ) || voices.find(voice => 
+              // Fallback: Any voice that's not male and not mature-sounding
+              voice.lang.startsWith('en') && 
+              !voice.name.toLowerCase().includes('male') &&
+              !voice.name.toLowerCase().includes('man') &&
+              !voice.name.toLowerCase().includes('adult') &&
+              !voice.name.toLowerCase().includes('mature') &&
+              !voice.name.toLowerCase().includes('deep') &&
+              !voice.name.toLowerCase().includes('david') &&
+              !voice.name.toLowerCase().includes('mark') &&
+              !voice.name.toLowerCase().includes('james') &&
+              !voice.name.toLowerCase().includes('microsoft')
+            );
               if (preferredVoice) {
                 utterance.voice = preferredVoice;
               }
@@ -825,10 +837,10 @@ Keep response supportive and actionable.`
         options.onProgress?.((i / chunks.length) * 100);
         
         const mp3 = await ai.audio.speech.create({
-          model: "tts-1",
-          voice: "alloy", // More natural, less synthetic voice
+          model: "tts-1-hd", // Use HD model for better quality  
+          voice: "nova", // Soft, warm female voice - sounds younger and gentler
           input: chunks[i],
-          speed: options.speed || 0.8 // Use dynamic speed setting
+          speed: options.speed || 1.1 // Slightly faster speed for younger sound
         });
 
         const audioBuffer = await mp3.arrayBuffer();
@@ -893,25 +905,37 @@ Keep response supportive and actionable.`
             options.onProgress?.((chunkIndex / chunks.length) * 100);
             
             const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
-            utterance.rate = options.speed || 0.8;
-            utterance.pitch = 0.9;
+            utterance.rate = options.speed || 1.1; // Slightly faster for younger sound
+            utterance.pitch = 1.1; // Higher pitch for younger voice
             utterance.volume = options.volume || 0.8;
             
-            // Try to use a more natural voice
+            // Only use young, soft female voices for AI-Therapist
             const voices = speechSynthesis.getVoices();
             const preferredVoice = voices.find(voice => 
-              voice.name.toLowerCase().includes('natural') ||
-              voice.name.toLowerCase().includes('enhanced') ||
-              voice.name.toLowerCase().includes('premium') ||
-              voice.name.toLowerCase().includes('david') ||
-              voice.name.toLowerCase().includes('aria') ||
+              // First priority: Young female voices with higher pitch
               voice.name.toLowerCase().includes('jenny') ||
-              (!voice.name.toLowerCase().includes('microsoft') && voice.lang.startsWith('en'))
-            ) || voices.find(voice => 
-              voice.name.toLowerCase().includes('female') ||
-              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('aria') ||
               voice.name.toLowerCase().includes('samantha') ||
-              voice.name.toLowerCase().includes('hazel')
+              voice.name.toLowerCase().includes('girl') ||
+              voice.name.toLowerCase().includes('child') ||
+              // Second priority: Soft female voices (not Microsoft which tend to be deeper)
+              (voice.name.toLowerCase().includes('female') && 
+               !voice.name.toLowerCase().includes('microsoft') && 
+               !voice.name.toLowerCase().includes('adult')) ||
+              voice.name.toLowerCase().includes('zira') ||
+              voice.name.toLowerCase().includes('eva')
+            ) || voices.find(voice => 
+              // Fallback: Any voice that's not male and not mature-sounding
+              voice.lang.startsWith('en') && 
+              !voice.name.toLowerCase().includes('male') &&
+              !voice.name.toLowerCase().includes('man') &&
+              !voice.name.toLowerCase().includes('adult') &&
+              !voice.name.toLowerCase().includes('mature') &&
+              !voice.name.toLowerCase().includes('deep') &&
+              !voice.name.toLowerCase().includes('david') &&
+              !voice.name.toLowerCase().includes('mark') &&
+              !voice.name.toLowerCase().includes('james') &&
+              !voice.name.toLowerCase().includes('microsoft')
             );
             if (preferredVoice) {
               utterance.voice = preferredVoice;

@@ -31,10 +31,10 @@ export const VoiceGuidance: React.FC<VoiceGuidanceProps> = ({
   const [currentPosition, setCurrentPosition] = useState(0);
   const [progress, setProgress] = useState(0);
   const [voiceSettings, setVoiceSettings] = useState({
-    rate: 0.8,
-    pitch: 1.0,
+    rate: 1.1, // Faster rate for younger sound
+    pitch: 1.1, // Slightly higher pitch for younger voice
     volume: 0.9,
-    voice: 'nova' // OpenAI voice
+    voice: 'nova' // OpenAI's softest female voice
   });
   const [segments, setSegments] = useState<string[]>([]);
   const [currentSegment, setCurrentSegment] = useState(0);
@@ -136,13 +136,25 @@ export const VoiceGuidance: React.FC<VoiceGuidanceProps> = ({
         utterance.pitch = voiceSettings.pitch;
         utterance.volume = isMuted ? 0 : voiceSettings.volume;
         
-        // Try to use a female voice
+        // Try to use a young, soft female voice
         const voices = speechSynthesis.getVoices();
         const femaleVoice = voices.find(voice => 
-          voice.name.toLowerCase().includes('female') ||
-          voice.name.toLowerCase().includes('woman') ||
+          // Prioritize younger-sounding voices
+          voice.name.toLowerCase().includes('jenny') ||
+          voice.name.toLowerCase().includes('aria') ||
+          voice.name.toLowerCase().includes('samantha') ||
+          voice.name.toLowerCase().includes('girl') ||
+          // Then soft female voices, excluding Microsoft ones (tend to be deeper)
+          (voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('microsoft')) ||
           voice.name.toLowerCase().includes('zira') ||
           voice.name.toLowerCase().includes('eva')
+        ) || voices.find(voice => 
+          // Fallback but exclude deeper/mature voices
+          voice.lang.startsWith('en') && 
+          !voice.name.toLowerCase().includes('adult') &&
+          !voice.name.toLowerCase().includes('mature') &&
+          !voice.name.toLowerCase().includes('deep') &&
+          !voice.name.toLowerCase().includes('male')
         );
         if (femaleVoice) {
           utterance.voice = femaleVoice;
@@ -243,11 +255,38 @@ export const VoiceGuidance: React.FC<VoiceGuidanceProps> = ({
   };
 
   const formatScript = (script: string) => {
-    return script.split('\n').map((line, index) => (
-      <p key={index} className="mb-2 leading-relaxed">
-        {line}
-      </p>
-    ));
+    const formattedHtml = script
+      // Handle bold text
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+      // Handle italic text  
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      // Convert sections with parentheses to styled time indicators
+      .replace(/\(([0-9-]+\s*minutes?)\)/g, '<span class="text-xs px-2 py-1 bg-primary/10 rounded text-primary font-medium">$1</span>')
+      .split('\n')
+      .map(line => {
+        const trimmedLine = line.trim();
+        // Section headers with emojis
+        if (trimmedLine.match(/^[🧘‍♀️🌸💫⭐🌙🧠💝🎯📚🏠👨‍👩‍👧‍👦💤😴🌊🔥❤️💪🎯📝]+\s*\*\*.*\*\*/) || 
+            trimmedLine.match(/^\*\*[A-Z\s&()-]+\*\*$/)) {
+          const headerText = trimmedLine.replace(/[🧘‍♀️🌸💫⭐🌙🧠💝🎯📚🏠👨‍👩‍👧‍👦💤😴🌊🔥❤️💪🎯📝🧘‍♂️]/g, '').replace(/\*\*/g, '').trim();
+          return `<h3 class="text-lg font-semibold text-primary mt-4 mb-2 flex items-center gap-2">
+            <span class="text-primary/70">${trimmedLine.match(/[🧘‍♀️🌸💫⭐🌙🧠💝🎯📚🏠👨‍👩‍👧‍👦💤😴🌊🔥❤️💪🎯📝🧘‍♂️]/)?.[0] || ''}</span>
+            ${headerText}
+          </h3>`;
+        }
+        // Sub-headers with timing
+        if (trimmedLine.match(/^\*\*.*\([0-9-]+.*\)\*\*$/)) {
+          return `<h4 class="text-base font-medium text-primary/80 mt-3 mb-1">${trimmedLine.replace(/\*\*/g, '')}</h4>`;
+        }
+        // Regular paragraphs
+        if (trimmedLine.length > 0) {
+          return `<p class="mb-2 leading-relaxed">${line}</p>`;
+        }
+        return '<div class="mb-2"></div>'; // Empty line spacing
+      })
+      .join('\n');
+    
+    return <div dangerouslySetInnerHTML={{ __html: formattedHtml }} />;
   };
 
   const getCurrentSegmentText = () => {

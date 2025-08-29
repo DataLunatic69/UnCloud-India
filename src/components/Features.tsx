@@ -25,7 +25,7 @@ const Features = () => {
       textColor: "text-blue-600",
       link: "/ai-therapist",
       stats: "10K+ conversations",
-      badge: "Most Popular",
+      badge: null,
       highlights: ["24/7 Available", "Cultural Sensitivity", "Evidence-Based CBT/DBT"],
       popularity: 95
     },
@@ -38,7 +38,7 @@ const Features = () => {
       textColor: "text-emerald-600",
       link: "/ai-meditations",
       stats: "500+ unique sessions",
-      badge: "New",
+      badge: null,
       highlights: ["Personalized Content", "Study Focus", "Sleep Enhancement"],
       popularity: 87
     },
@@ -64,7 +64,7 @@ const Features = () => {
       textColor: "text-rose-600",
       link: "/stigma-support",
       stats: "24/7 crisis support",
-      badge: "Critical",
+      badge: null,
       highlights: ["Crisis Detection", "Emergency Resources", "Stigma Breaking"],
       popularity: 92
     },
@@ -90,7 +90,7 @@ const Features = () => {
       textColor: "text-indigo-600",
       link: "/mood-tracking",
       stats: "Advanced analytics",
-      badge: "AI Powered",
+      badge: null,
       highlights: ["Pattern Recognition", "Privacy Protected", "Progress Insights"],
       popularity: 89
     },
@@ -300,13 +300,13 @@ const Features = () => {
 
         {/* Bottom CTA */}
         <div className="text-center mt-24">
-          <div className="max-w-4xl mx-auto p-12 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-teal-500/90 backdrop-blur-sm rounded-3xl text-white shadow-2xl border border-white/10">
+          <div className="max-w-4xl mx-auto p-12 bg-gradient-hero backdrop-blur-sm rounded-3xl text-white shadow-2xl border border-white/10">
             <div className="space-y-8">
               <div>
                 <h3 className="text-3xl md:text-4xl font-bold mb-4">
                   Transform Your Mental Health Today
                 </h3>
-                <p className="text-xl text-green-50 leading-relaxed max-w-2xl mx-auto">
+                <p className="text-xl text-white/90 leading-relaxed max-w-2xl mx-auto">
                   Experience personalized mental health support designed specifically for Indian youth with our comprehensive AI-powered platform.
                 </p>
               </div>
@@ -315,7 +315,7 @@ const Features = () => {
                 <Button 
                   size="lg" 
                   onClick={() => handleNavigation('/ai-therapist')}
-                  className="bg-white text-green-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 font-bold text-lg px-8 py-4"
+                  className="bg-white text-teal-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300 font-bold text-lg px-8 py-4"
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
                   Start Free Therapy Session
@@ -323,14 +323,14 @@ const Features = () => {
                 <Button 
                   size="lg" 
                   onClick={() => handleNavigation('/ai-meditations')}
-                  className="bg-white/20 border-2 border-white text-white hover:bg-white hover:text-green-600 font-bold text-lg px-8 py-4 transition-all duration-300 backdrop-blur-sm"
+                  className="bg-white/20 border-2 border-white text-white hover:bg-white hover:text-teal-600 font-bold text-lg px-8 py-4 transition-all duration-300 backdrop-blur-sm"
                 >
                   <Headphones className="w-5 h-5 mr-2" />
                   Try Guided Meditation
                 </Button>
               </div>
               
-              <p className="text-sm text-green-100">
+              <p className="text-sm text-white/80">
                 ✨ No credit card required • 🔒 Complete privacy guaranteed • 🌟 Culturally sensitive support
               </p>
             </div>
