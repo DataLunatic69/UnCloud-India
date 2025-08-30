@@ -1,36 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageCircle, Send, ArrowLeft, Shield, Brain, TrendingUp, User, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MessageCircle, Send, ArrowLeft, Shield, Brain, TrendingUp, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAI } from '@/hooks/useAI';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 import { useApp } from '@/contexts/AppContext';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 const AITherapist = () => {
   const [message, setMessage] = useState('');
   const [sessionId] = useState(() => Date.now().toString());
-  const [userProfile, setUserProfile] = useState({
-    age: '',
-    gender: '',
-    culturalBackground: 'Indian',
-    primaryConcerns: [] as string[],
-    familySituation: '',
-    academicPressure: false,
-    socialAnxiety: false
-  });
-  const [showProfile, setShowProfile] = useState(false);
-  const [insights, setInsights] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { 
     getTherapistResponse, 
-    getTherapyInsights, 
     isLoading, 
     therapySessions,
     textToSpeech,
@@ -44,6 +30,7 @@ const AITherapist = () => {
     cancelRecording 
   } = useAudioRecording();
   const { state, dispatch } = useApp();
+  const navigate = useNavigate();
 
   const messages = state.chatSessions[sessionId] || [];
 
@@ -53,14 +40,7 @@ const AITherapist = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
-
-  // Get insights after 5+ messages
-  useEffect(() => {
-    if (messages.length >= 10 && !insights) {
-      getTherapyInsights(sessionId).then(setInsights);
-    }
-  }, [messages.length, insights, sessionId, getTherapyInsights]);  const handleSendMessage = async () => {
+  }, [messages]);  const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
 
     const userMessage = {
@@ -77,7 +57,6 @@ const AITherapist = () => {
     try {
       // Get AI response with enhanced context
       const response = await getTherapistResponse(message.trim(), sessionId, {
-        userProfile,
         previousMessages: messages.map(m => m.content)
       });
       
@@ -147,7 +126,10 @@ const AITherapist = () => {
     
     setIsPlaying(true);
     try {
-      await textToSpeech(text);
+      await textToSpeech(text, {
+        speed: 1.0, // Normal speed
+        volume: 0.8 // Good volume level
+      });
     } catch (error) {
       console.error('Error playing message:', error);
       toast.error('Failed to play voice message.');
@@ -170,19 +152,6 @@ const AITherapist = () => {
     }
   };
 
-  const updateUserProfile = (field: string, value: any) => {
-    setUserProfile(prev => ({ ...prev, [field]: value }));
-  };
-
-  const addPrimaryConcern = (concern: string) => {
-    if (concern && !userProfile.primaryConcerns.includes(concern)) {
-      updateUserProfile('primaryConcerns', [...userProfile.primaryConcerns, concern]);
-    }
-  };
-
-  const removePrimaryConcern = (concern: string) => {
-    updateUserProfile('primaryConcerns', userProfile.primaryConcerns.filter(c => c !== concern));
-  };
   // Handle recording errors
   useEffect(() => {
     if (recordingError) {
@@ -232,14 +201,6 @@ const AITherapist = () => {
             >
               {voiceEnabled ? <Volume2 className="w-4 h-4 mr-2" /> : <VolumeX className="w-4 h-4 mr-2" />}
               {voiceEnabled ? 'Voice On' : 'Voice Off'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowProfile(!showProfile)}
-            >
-              <User className="w-4 h-4 mr-2" />
-              Profile
             </Button>
           </div>
         </div>
@@ -380,125 +341,27 @@ const AITherapist = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* User Profile */}
-            {showProfile && (
-              <Card className="shadow-soft">
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Profile</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Help me understand you better for more personalized support
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-sm font-medium">Age</label>
-                      <Input
-                        value={userProfile.age}
-                        onChange={(e) => updateUserProfile('age', e.target.value)}
-                        placeholder="Age"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Gender</label>
-                      <Input
-                        value={userProfile.gender}
-                        onChange={(e) => updateUserProfile('gender', e.target.value)}
-                        placeholder="Gender"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium">Family Situation</label>
-                    <Input
-                      value={userProfile.familySituation}
-                      onChange={(e) => updateUserProfile('familySituation', e.target.value)}
-                      placeholder="e.g., Nuclear family, joint family"
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Primary Concerns</label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        placeholder="Add concern"
-                        onKeyPress={(e) => e.key === 'Enter' && addPrimaryConcern(e.currentTarget.value)}
-                        className="flex-1"
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {userProfile.primaryConcerns.map((concern, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={() => removePrimaryConcern(concern)}
-                        >
-                          {concern} ×
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Common Challenges</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="academicPressure"
-                        checked={userProfile.academicPressure}
-                        onChange={(e) => updateUserProfile('academicPressure', e.target.checked)}
-                      />
-                      <label htmlFor="academicPressure" className="text-sm">Academic Pressure</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="socialAnxiety"
-                        checked={userProfile.socialAnxiety}
-                        onChange={(e) => updateUserProfile('socialAnxiety', e.target.checked)}
-                      />
-                      <label htmlFor="socialAnxiety" className="text-sm">Social Anxiety</label>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Therapy Insights */}
-            {insights && (
-              <Card className="shadow-soft border-primary/20 bg-primary-soft/10">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-primary" />
-                    Session Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {insights}
-                  </p>
-                </CardContent>
-              </Card>
-            )}            {/* Quick Actions */}
+            {/* Quick Actions */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/mood-tracking')}
+                >
                   <TrendingUp className="w-4 h-4 mr-2" />
                   Track Progress
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Get Insights
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/stigma-support')}
+                >
                   <Shield className="w-4 h-4 mr-2" />
                   Crisis Support
                 </Button>
