@@ -1,8 +1,21 @@
 import axios from 'axios';
 
+// Determine API base URL based on environment
+const getApiBaseUrl = (): string => {
+  // Check if we're in production (deployed on Vercel)
+  const isProduction = window.location.hostname !== 'localhost' && 
+                      window.location.hostname !== '127.0.0.1';
+  
+  if (isProduction) {
+    return import.meta.env.VITE_API_BASE_URL_PRODUCTION || 'https://uncloud-india-api.vercel.app/api';
+  } else {
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+  }
+};
+
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api',
+  baseURL: getApiBaseUrl(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -198,10 +211,20 @@ class AuthService {
     console.error('Auth API Error:', error);
     
     if (error.code === 'ERR_NETWORK') {
-      return {
-        success: false,
-        message: 'Network error: Unable to connect to the server. Please check if the server is running on port 5001.'
-      };
+      const isProduction = window.location.hostname !== 'localhost' && 
+                          window.location.hostname !== '127.0.0.1';
+      
+      if (isProduction) {
+        return {
+          success: false,
+          message: 'Unable to connect to the server. The backend service may be temporarily unavailable. Please try again in a few moments.'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Network error: Unable to connect to the server. Please check if the server is running on port 5001.'
+        };
+      }
     }
     
     if (error.response?.data) {

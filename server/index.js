@@ -14,6 +14,11 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from the correct path
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+// Also check for Vercel environment variables
+if (!process.env.MONGODB_URI && process.env.MONGODB_URL) {
+  process.env.MONGODB_URI = process.env.MONGODB_URL;
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -52,7 +57,8 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:8081',
     'http://localhost:8081', // New Vite port
     'http://localhost:5173', // Old Vite port (for backward compatibility)
-    'http://localhost:3000'  // Add support for other common ports
+    'http://localhost:3000',  // Add support for other common ports
+    'https://un-cloud-india.vercel.app' // Production frontend URL
   ],
   credentials: true
 }));
@@ -125,3 +131,6 @@ app.listen(PORT, () => {
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API base URL: http://localhost:${PORT}/api`);
 });
+
+// Export the app for Vercel
+export default app;
