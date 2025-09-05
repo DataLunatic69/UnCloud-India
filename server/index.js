@@ -70,6 +70,20 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Routes
 app.use('/api/auth', authLimiter, authRoutes);
 
+// Root endpoint for testing
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Uncloud India API Server',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -126,11 +140,14 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Uncloud API server running on port ${PORT}`);
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API base URL: http://localhost:${PORT}/api`);
-});
+// For local development, start the server
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Uncloud API server running on port ${PORT}`);
+    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 API base URL: http://localhost:${PORT}/api`);
+  });
+}
 
 // Export the app for Vercel
 export default app;

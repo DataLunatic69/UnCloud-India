@@ -7,7 +7,7 @@ const getApiBaseUrl = (): string => {
                       window.location.hostname !== '127.0.0.1';
   
   if (isProduction) {
-    return import.meta.env.VITE_API_BASE_URL_PRODUCTION || 'https://uncloud-india-api.vercel.app/api';
+    return import.meta.env.VITE_API_BASE_URL_PRODUCTION || 'https://uncloud-india-backend.vercel.app/api';
   } else {
     return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
   }
